@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) %cyan(%logger{36}) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="jdk.httpclient.HttpClient" level="ERROR"/>
+    <logger name="sun.net.www.protocol.http" level="ERROR"/>
+    <logger name="sun.net.www.protocol.https" level="ERROR"/>
+    <logger name="org.springframework.web.client.RestClient" level="ERROR"/>
+    <logger name="org.springframework.http.client" level="ERROR"/>
+
+
+    <root level="INFO"> <appender-ref ref="CONSOLE" />
+    </root>
+
+</configuration>

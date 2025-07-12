@@ -1,0 +1,106 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.0'
+	id 'io.spring.dependency-management' version '1.1.6'
+	id 'groovy'
+	id "com.github.node-gradle.node" version "3.5.0"
+	id 'org.graalvm.buildtools.native' version '0.10.6'
+}
+
+group = 'org.afflato'
+sourceCompatibility = '21'
+targetCompatibility = '21'
+
+repositories {
+	mavenCentral()
+}
+
+
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+
+	implementation 'org.apache.commons:commons-lang3:3.14.0'
+	implementation 'org.apache.commons:commons-collections4:4.3'
+	implementation 'org.apache.commons:commons-csv:1.11.0'
+	implementation 'org.asynchttpclient:async-http-client:2.12.3'
+
+
+	implementation 'com.h2database:h2'
+	implementation 'org.json:json:20250517'
+	implementation 'org.apache.groovy:groovy:4.0.27'
+	compileOnly 'org.projectlombok:lombok:1.18.34'
+	annotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testCompileOnly 'org.projectlombok:lombok:1.18.34'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+
+}
+
+sourceSets {
+	main {
+		java {
+			srcDirs = ['src/main/java', 'src/main/groovy']
+		}
+		groovy {
+			srcDirs = ['src/main/java', 'src/main/groovy']
+		}
+	}
+}
+
+
+
+node {
+	download = false
+	workDir = file("${project.projectDir}/src/main/frontend/nodejs")
+	npmWorkDir = file("${project.projectDir}/src/main/frontend/npm")
+	nodeModulesDir = file("${project.projectDir}/src/main/frontend")
+}
+
+tasks.register('appNpmInstall', NpmTask) {
+	description = " read packge.json and install all jars"
+	workingDir = file("${project.projectDir}/src/main/frontend")
+	args = ["install", "--debug"]
+}
+tasks.register('appNpmBuild', NpmTask) {
+	description = "Builds applciation for your frontend "
+	workingDir = file("${project.projectDir}/src/main/frontend")
+	args = ["run", "build"]
+}
+tasks.register('copyToFrontend', Copy) {
+	from "$projectDir/src/main/frontend/dist/"
+	into "$buildDir/resources/main/static"
+}
+
+tasks.named('compileGroovy') {
+
+	classpath = sourceSets.main.compileClasspath
+}
+tasks.named('compileJava') {
+
+	classpath += files(sourceSets.main.groovy.classesDirectory)
+}
+
+appNpmBuild.dependsOn appNpmInstall
+copyToFrontend.dependsOn appNpmBuild
+compileJava.dependsOn copyToFrontend
+
+
+bootJar {
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+jar {
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
